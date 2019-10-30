@@ -5,7 +5,7 @@ import figlet from 'figlet';
 import path from 'path';
 import program from 'commander';
 import { convertVCFtoMAF } from './convert';
-import { annotate } from './annotate';
+import { annotate, annotateMAF } from './annotate';
 
 const withErrors = (command: (...args) => Promise<void>) => {
     return async (...args: any[]) => {
@@ -44,6 +44,18 @@ program
         try {
             const annotation = await annotate(input);
             console.log(JSON.stringify(annotation, null, 4));
+        } catch (e) {
+            console.log(chalk.red(e.stack));
+            process.exitCode = 1;
+        }
+    });
+
+program
+    .command('annotatemaf')
+    .description('retrieve annotations for a maf file')
+    .action(async (input, args) => {
+        try {
+            const annotation = await annotateMAF(input);
         } catch (e) {
             console.log(chalk.red(e.stack));
             process.exitCode = 1;
