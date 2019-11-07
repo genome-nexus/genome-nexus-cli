@@ -1,10 +1,19 @@
-import lineByLine = require('n-readlines');
+import lineByLine from 'n-readlines';
 import { keyBy } from 'lodash';
+import fs from 'fs';
+import os from 'os';
 
 import GenomeNexusAPI, { GenomicLocation, VariantAnnotation } from './api/generated/GenomeNexusAPI';
 
 export const DEFAULT_GENOME_NEXUS_URL = 'https://www.genomenexus.org/';
+export const COLUMN_NAMES_MAF = 'Chromosome\tStart_Position\tEnd_Position\tReference_Allele\tTumor_Seq_Allele2'.split('\t');
+
 const DEFAULT_GENOME_NEXUS_CLIENT = initGenomeNexusClient();
+
+
+export const ERROR = {
+    API_ERROR: 'API_ERROR'
+}
 
 export function initGenomeNexusClient(genomeNexusUrl?: string) {
     return new GenomeNexusAPI(genomeNexusUrl || DEFAULT_GENOME_NEXUS_URL);
@@ -80,20 +89,33 @@ export function indexAnnotationsByGenomicLocation(annotations:VariantAnnotation[
     });
 }
 
-export async function annotateAndPrintChunk(chunk:annotateLine[], chunkSize:number) {
-    // TODO: only annotate unique genomic locations
-    let annotations = await annotateGenomicLocationPOST(chunk.map((ca => ca.genomicLocation)));
-    let annotationsIndexed = indexAnnotationsByGenomicLocation(annotations);
+export async function annotateAndPrintChunk(chunk:annotateLine[], chunkSize:number, excludeFailed: boolean, outputFileFailed: string) {
+    try {
+        // TODO: only annotate unique genomic locations
+        let annotations = await annotateGenomicLocationPOST(chunk.map((ca => ca.genomicLocation)));
+        let annotationsIndexed = indexAnnotationsByGenomicLocation(annotations);
 
-    let i: number;
-    for (i = 0; i < chunk.length; i++) {
-        if (annotationsIndexed.hasOwnProperty(genomicLocationToKey(chunk[i].genomicLocation)) &&
-            annotationsIndexed[genomicLocationToKey(chunk[i].genomicLocation)] &&
-            annotationsIndexed[genomicLocationToKey(chunk[i].genomicLocation)].annotation_summary) {
-            let summary = annotationsIndexed[genomicLocationToKey(chunk[i].genomicLocation)].annotation_summary.transcriptConsequenceSummary;
-            console.log( `${chunk[i].line.trim()}\t${summary.hugoGeneSymbol}\t${summary.hgvspShort}\t${summary.hgvsc}\t${summary.exon}\t${summary.variantClassification}`);
-        } else {
-            console.log(`${chunk[i].line.trim()}\t\t\t\t\t`)
+        let i: number;
+        for (i = 0; i < chunk.length; i++) {
+            if (annotationsIndexed.hasOwnProperty(genomicLocationToKey(chunk[i].genomicLocation)) &&
+                annotationsIndexed[genomicLocationToKey(chunk[i].genomicLocation)] &&
+                annotationsIndexed[genomicLocationToKey(chunk[i].genomicLocation)].annotation_summary) {
+                let summary = annotationsIndexed[genomicLocationToKey(chunk[i].genomicLocation)].annotation_summary.transcriptConsequenceSummary;
+                console.log( `${chunk[i].line.trim()}\t${summary.hugoGeneSymbol}\t${summary.hgvspShort}\t${summary.hgvsc}\t${summary.exon}\t${summary.variantClassification}`);
+            } else {
+                console.log(`${chunk[i].line.trim()}\t\t\t\t\t`)
+            }
+        }
+    } catch {
+        if (!excludeFailed) {
+            console.log(chunk.map(ca => `${ca.line.trim()}\t\t\t\t\t`).join(os.EOL))
+        }
+        if (outputFileFailed) {
+            fs.appendFile(outputFileFailed, chunk.map(ca => `${ca.line.trim()}\t\t\t\t\t${ERROR.API_ERROR}`).join(os.EOL) + os.EOL, function (err) {
+                if (err) {
+                    console.error(`Can't write to outputFileFailed: ${outputFileFailed}`);
+                }
+            });
         }
     }
 
@@ -107,8 +129,9 @@ export type annotateLine = {
 export async function annotateMAF(
     inputFile: string,
     chunkSize: number = 10,
+    excludeFailed: boolean,
+    outputFileFailed: string,
     client = DEFAULT_GENOME_NEXUS_CLIENT) {
-    const COLUMN_NAMES_MAF = 'Chromosome\tStart_Position\tEnd_Position\tReference_Allele\tTumor_Seq_Allele2'.split('\t');
 
     let chunkedAnnotations:annotateLine[] = [];
     let indices = {};
@@ -131,7 +154,11 @@ export async function annotateMAF(
                     throw new Error(`Missing column in header: ${columnName}`);
                 }
             }
-            console.log(`${line.trim()}\thugoGeneSymbol\thgvspShort\thgvsc\texon\tvariantClassification`);
+            const header = `${line.trim()}\thugoGeneSymbol\thgvspShort\thgvsc\texon\tvariantClassification`;
+            console.log(header);
+            if (outputFileFailed) {
+                fs.writeFileSync(outputFileFailed, `${header}\tGENOME_NEXUS_ERROR_CODE${os.EOL}`);
+            }
         } else {
             let genomicLocation = {
                 'chromosome':columns[indices['Chromosome']],
@@ -142,7 +169,7 @@ export async function annotateMAF(
             };
             chunkedAnnotations.push({line:line,genomicLocation})
             if (chunkedAnnotations.length >= chunkSize) {
-                await annotateAndPrintChunk(chunkedAnnotations, chunkSize);
+                await annotateAndPrintChunk(chunkedAnnotations, chunkSize, excludeFailed, outputFileFailed);
                 chunkedAnnotations = [];
             }
         }
@@ -150,6 +177,6 @@ export async function annotateMAF(
     }
     // annotate leftover mutations
     if (chunkedAnnotations.length >= 0) {
-        await annotateAndPrintChunk(chunkedAnnotations, chunkSize);
+        await annotateAndPrintChunk(chunkedAnnotations, chunkSize, excludeFailed, outputFileFailed);
     }
 }
