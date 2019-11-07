@@ -20,6 +20,8 @@
     "figlet": "^1.2.4",
     "inquirer": "^7.0.0",
     "line-reader": "^0.4.0",
+    "lodash": "^4.17.15",
+    "n-readlines": "^1.0.0",
     "path": "^0.12.7",
     "request": "^2.88.0",
     "superagent": "^5.1.0"

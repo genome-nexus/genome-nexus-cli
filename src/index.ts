@@ -53,9 +53,10 @@ program
 program
     .command('annotatemaf')
     .description('retrieve annotations for a maf file')
+    .option('-c, --chunk-size <number>', 'how many variants to send in single POST request', 5)
     .action(async (input, args) => {
         try {
-            const annotation = await annotateMAF(input);
+            const annotation = await annotateMAF(input, args.chunkSize);
         } catch (e) {
             console.log(chalk.red(e.stack));
             process.exitCode = 1;
