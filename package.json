@@ -27,7 +27,8 @@
     "superagent": "^5.1.0"
   },
   "bin": {
-    "genome-nexus": "./bin/genome-nexus"
+    "genome-nexus": "./bin/genome-nexus",
+    "genome-nexus-annotate": "./bin/genome-nexus-annotate"
   },
   "devDependencies": {
     "@types/node": "^12.11.1",

@@ -3,7 +3,7 @@ import { keyBy } from 'lodash';
 import fs from 'fs';
 import os from 'os';
 
-import GenomeNexusAPI, { GenomicLocation, VariantAnnotation } from './api/generated/GenomeNexusAPI';
+import GenomeNexusAPI, { GenomicLocation, VariantAnnotation } from './../../api/generated/GenomeNexusAPI';
 
 export const DEFAULT_GENOME_NEXUS_URL = 'https://www.genomenexus.org/';
 export const COLUMN_NAMES_MAF = 'Chromosome\tStart_Position\tEnd_Position\tReference_Allele\tTumor_Seq_Allele2'.split('\t');
