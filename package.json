@@ -31,12 +31,15 @@
     "genome-nexus-annotate": "./bin/genome-nexus-annotate"
   },
   "devDependencies": {
+    "@types/jest": "^24.0.22",
     "@types/node": "^12.11.1",
+    "jest": "^24.9.0",
     "json": "^9.0.6",
     "nodemon": "^1.19.4",
     "pkg": "^4.4.0",
     "prettier": "^1.18.2",
     "swagger-js-codegen": "git+https://github.com/cBioPortal/swagger-js-codegen.git#0362f4a1e2d116ad6dffc36e4b57cdfbc93956cf",
+    "ts-jest": "^24.1.0",
     "ts-node": "^8.4.1",
     "typescript": "^3.6.4"
   },
@@ -44,7 +47,7 @@
     "start": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
     "create": "yarn run build && yarn run test",
     "build": "tsc -p .",
-    "test": "yarn unlink && yarn link && genome-nexus",
+    "test": "jest",
     "refresh": "rm -rf ./node_modules ./yarn.lock && yarn install",
     "prettier": "prettier --config ./.prettierrc.js --write './src/**'",
     "test-prettier": "prettier --config ./.prettierrc.js -c './src/**'",

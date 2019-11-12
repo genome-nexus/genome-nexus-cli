@@ -19,7 +19,9 @@ export const ERROR = {
     API_ERROR: 'API_ERROR',
 };
 
-export function isValidGenomicLocation(genomicLocation: GenomicLocation) {
+export function isValidGenomicLocation(
+    genomicLocation: GenomicLocation
+): boolean {
     return (
         genomicLocation.chromosome &&
         genomicLocation.referenceAllele &&
@@ -27,11 +29,11 @@ export function isValidGenomicLocation(genomicLocation: GenomicLocation) {
         genomicLocation.start &&
         genomicLocation.end &&
         ((genomicLocation.referenceAllele === '-' &&
-            /[ACGT]+/.exec(genomicLocation.variantAllele)) ||
+            /[ACGT]+/.test(genomicLocation.variantAllele)) ||
             (genomicLocation.variantAllele === '-' &&
-                /[ACGT]+/.exec(genomicLocation.referenceAllele)) ||
-            (/[ACGT]+/.exec(genomicLocation.referenceAllele) &&
-                /[ACGT]+/.exec(genomicLocation.variantAllele)))
+                /[ACGT]+/.test(genomicLocation.referenceAllele)) ||
+            (/[ACGT]+/.test(genomicLocation.referenceAllele) &&
+                /[ACGT]+/.test(genomicLocation.variantAllele)))
     );
 }
 
