@@ -31,6 +31,14 @@ genome-nexus --help
 genome-nexus convert variants.vcf
 ```
 
+### Annotate maf file
+
+Given input MAF file like: [test/data/minimal_example.in.txt](./test/data/minimal_example.in.txt). Get annotated output MAF like: [test/data/minimal_example.out.txt](./test/data/minimal_example.out.txt)
+
+```bash
+genome-nexus annotate maf test/data/minimal_example.in.txt > test/data/minimal_example.out.txt
+```
+
 ### Get JSON output for a single variant
 
 ```bash
@@ -39,13 +47,6 @@ genome-nexus annotate variant 17:g.41242962_41242963insGA
 
 Gives raw JSON output: [https://www.genomenexus.org/annotation/17:g.41242962_41242963insGA](https://www.genomenexus.org/annotation/17:g.41242962_41242963insGA)
 
-### Annotate maf file
-
-```bash
-genome-nexus annotate maf test/data/minimal_example.in.txt
-```
-
-Gives annotated MAF: [test/data/minimal_example.out.txt](./test/data/minimal_example.out.txt)
 
 ## TODO
 
