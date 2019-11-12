@@ -1,8 +1,8 @@
-# Command Line Interface for Genome Nexus
+# 💻 Command Line Interface for Genome Nexus 🧬
 
 🚧 Under construction 🚧
 
-## Install
+## Install 💻
 
 ### For users
 
@@ -17,7 +17,7 @@ yarn build
 yarn link
 ```
 
-## Usage examples
+## Usage examples 🧬
 
 Check the help docs:
 
@@ -48,7 +48,7 @@ genome-nexus annotate variant 17:g.41242962_41242963insGA
 Gives raw JSON output: [https://www.genomenexus.org/annotation/17:g.41242962_41242963insGA](https://www.genomenexus.org/annotation/17:g.41242962_41242963insGA)
 
 
-## TODO
+## TODO 🔧
 
 - [ ] Output ignored variants instead of only failed variants. E.g. when genomic location is not valid
 - [ ] Add tests for
@@ -56,3 +56,9 @@ Gives raw JSON output: [https://www.genomenexus.org/annotation/17:g.41242962_412
   - [ ] maf annotation
   - [ ] vcf conversion
 - [ ] User installation documentation
+
+## Test Status 👷‍♀️
+
+| branch | master |
+| --- | --- |
+| status | [![CircleCI](https://circleci.com/gh/genome-nexus/genome-nexus-cli/tree/master.svg?style=svg)](https://circleci.com/gh/genome-nexus/genome-nexus-cli/tree/master) |
