@@ -1,5 +1,7 @@
 name: npm-publish
-on: tag # Edit this to change when (and for which branches) the action is triggered
+on:
+  release:
+    types: [published] # Edit this to change when (and for which branches) the action is triggered
 jobs:
   npm-publish:
     name: npm-publish
