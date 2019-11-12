@@ -1,6 +1,6 @@
 # 💻 Command Line Interface for Genome Nexus 🧬
 
-🚧 Under construction 🚧
+Genome Nexus is a web service: https://www.genomenexus.org. A comprehensive one-stop resource for fast, automated and high-throughput annotation and interpretation of genetic variants in cancer. Genome Nexus integrates information from a variety of existing resources, including databases that convert DNA changes to protein changes, predict the functional effects of protein mutations, and contain information about mutation frequencies, gene function, variant effects, and clinical actionability. For a list of all annotations see here: https://docs.genomenexus.org/annotation-sources. This command line client annotates VCF and MAF files using annotations provided by the Genome Nexus API. The command line client's internal logic is lean: it sends a HTTP request to the Genome Nexus REST API to retreive annotations. Most logic happens in the web service itself. The variants are sent without sample IDs, so the variants can't be related back to specific samples.
 
 ## Install 💻
 
