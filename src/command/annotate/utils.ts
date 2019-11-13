@@ -13,8 +13,6 @@ export const COLUMN_NAMES_MAF = 'Chromosome\tStart_Position\tEnd_Position\tRefer
     '\t'
 );
 
-const DEFAULT_GENOME_NEXUS_CLIENT = initGenomeNexusClient();
-
 export const ERROR = {
     API_ERROR: 'API_ERROR',
 };
@@ -43,7 +41,7 @@ export function initGenomeNexusClient(genomeNexusUrl?: string) {
 
 export async function annotate(
     hgvs: string,
-    client = DEFAULT_GENOME_NEXUS_CLIENT
+    client: GenomeNexusAPI
 ) {
     if (client.fetchVariantAnnotationGET) {
         return await client.fetchVariantAnnotationGET({
@@ -62,7 +60,7 @@ export async function annotate(
 
 export async function annotateGenomicLocationGET(
     genomicLocation: GenomicLocation,
-    client = DEFAULT_GENOME_NEXUS_CLIENT
+    client: GenomeNexusAPI
 ) {
     if (client.fetchVariantAnnotationByGenomicLocationGET) {
         const genomicLocationString = `${genomicLocation.chromosome},${genomicLocation.start},${genomicLocation.end},${genomicLocation.referenceAllele},${genomicLocation.variantAllele}`;
@@ -82,7 +80,7 @@ export async function annotateGenomicLocationGET(
 
 export async function annotateGenomicLocationPOST(
     genomicLocations: GenomicLocation[],
-    client = DEFAULT_GENOME_NEXUS_CLIENT
+    client: GenomeNexusAPI
 ) {
     if (client.fetchVariantAnnotationByGenomicLocationPOST) {
         return await client.fetchVariantAnnotationByGenomicLocationPOST({
@@ -115,14 +113,16 @@ export async function annotateAndPrintChunk(
     chunk: annotateLine[],
     chunkSize: number,
     excludeFailed: boolean,
-    outputFileFailed: string
+    outputFileFailed: string,
+    client: GenomeNexusAPI
 ) {
     try {
         // TODO: only annotate unique genomic locations
         let annotations = await annotateGenomicLocationPOST(
             chunk
                 .filter(ca => isValidGenomicLocation(ca.genomicLocation))
-                .map(ca => ca.genomicLocation)
+                .map(ca => ca.genomicLocation),
+            client
         );
         let annotationsIndexed = indexAnnotationsByGenomicLocation(annotations);
 
@@ -192,7 +192,7 @@ export async function annotateMAF(
     chunkSize: number = 10,
     excludeFailed: boolean,
     outputFileFailed: string,
-    client = DEFAULT_GENOME_NEXUS_CLIENT
+    client: GenomeNexusAPI
 ) {
     let chunkedAnnotations: annotateLine[] = [];
     let indices = {};
@@ -239,7 +239,8 @@ export async function annotateMAF(
                     chunkedAnnotations,
                     chunkSize,
                     excludeFailed,
-                    outputFileFailed
+                    outputFileFailed,
+                    client
                 );
                 chunkedAnnotations = [];
             }
@@ -252,7 +253,8 @@ export async function annotateMAF(
             chunkedAnnotations,
             chunkSize,
             excludeFailed,
-            outputFileFailed
+            outputFileFailed,
+            client
         );
     }
 }
