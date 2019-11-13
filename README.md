@@ -6,7 +6,15 @@ Genome Nexus is a web service: https://www.genomenexus.org. A comprehensive one-
 
 ### For users
 
-TODO
+If you have [npm](https://www.npmjs.com/get-npm) installed:
+```
+npx genome-nexus-cli --help
+```
+If you have [Docker](https://docs.docker.com/docker-for-windows/install/) installed:
+```
+docker run -it --rm node:8.12.0  npx genome-nexus-cli --help
+```
+If you use neither and prefer another way of installing please file a request in the issue tracker: https://github.com/genome-nexus/genome-nexus-cli/issues.
 
 ### For developers
 
