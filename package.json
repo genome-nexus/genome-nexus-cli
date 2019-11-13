@@ -1,6 +1,6 @@
 {
   "name": "genome-nexus-cli",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Genome Nexus Command Line Interface",
   "main": "./lib/index.js",
   "repository": "https://github.com/genome-nexus/genome-nexus-cli",
