@@ -63,7 +63,6 @@ Gives raw JSON output: [https://www.genomenexus.org/annotation/17:g.41242962_412
   - [ ] single variant anntotation
   - [ ] maf annotation
   - [ ] vcf conversion
-- [ ] User installation documentation
 
 ## Test Status 👷‍♀️
 
