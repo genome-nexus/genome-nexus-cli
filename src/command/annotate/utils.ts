@@ -39,10 +39,7 @@ export function initGenomeNexusClient(genomeNexusUrl?: string) {
     return new GenomeNexusAPI(genomeNexusUrl || DEFAULT_GENOME_NEXUS_URL);
 }
 
-export async function annotate(
-    hgvs: string,
-    client: GenomeNexusAPI
-) {
+export async function annotate(hgvs: string, client: GenomeNexusAPI) {
     if (client.fetchVariantAnnotationGET) {
         return await client.fetchVariantAnnotationGET({
             variant: hgvs,

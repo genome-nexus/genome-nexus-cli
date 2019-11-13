@@ -1,7 +1,13 @@
 import chalk from 'chalk';
 import program from 'commander';
 
-import { annotate, annotateMAF, COLUMN_NAMES_MAF, initGenomeNexusClient, DEFAULT_GENOME_NEXUS_URL } from './utils';
+import {
+    annotate,
+    annotateMAF,
+    COLUMN_NAMES_MAF,
+    initGenomeNexusClient,
+    DEFAULT_GENOME_NEXUS_URL,
+} from './utils';
 
 program
     .command('variant')
@@ -15,7 +21,10 @@ program
     )
     .action(async (input, args) => {
         try {
-            const annotation = await annotate(input, initGenomeNexusClient(args.apiUrl));
+            const annotation = await annotate(
+                input,
+                initGenomeNexusClient(args.apiUrl)
+            );
             console.log(JSON.stringify(annotation, null, 4));
         } catch (e) {
             console.log(chalk.red(e.stack));
