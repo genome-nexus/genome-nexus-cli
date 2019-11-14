@@ -9,12 +9,14 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@master
+    - name: Make sure package.json lists same version as this tag
+      run: test  "$(git describe | sed 's/^v//')" === "$(yarn version  --non-interactive | tail -n +2 | cut -d':' -f2 | head -1 | tr -d ' ')"
     - name: Set up Node.js
       uses: actions/setup-node@master
       with:
-        node-version: 12.13.0
-    - run: yarn install
-    - run: yarn build --frozen-lockfile
+        node-version: 8.12.0
+    - run: yarn install --frozen-lockfile
+    - run: yarn build
     - run: yarn publish --non-interactive
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
