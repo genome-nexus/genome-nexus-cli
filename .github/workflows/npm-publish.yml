@@ -20,9 +20,9 @@ jobs:
     - run: yarn publish --non-interactive
       env:
         NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-    - uses: actions/setup-node@v1
+    - uses: actions/setup-node@master
       with:
         registry-url: 'https://npm.pkg.github.com'
-    - run: yarn publish --non-interactive
+    - run: yarn publish --non-interactive --registry 'https://npm.pkg.github.com'
       env:
         NPM_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
