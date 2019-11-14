@@ -1,8 +1,7 @@
 name: npm-publish
 on:
-  push:
-    branches:
-    - master
+  release:
+    types: [published]
 jobs:
   npm-publish:
     name: npm-publish
@@ -15,13 +14,14 @@ jobs:
       with:
         node-version: 8.12.0
     - run: yarn install
-    - run: yarn build
-    - name: Publish if version has been updated
-      uses: pascalgn/npm-publish-action@51fdb4531e99aac1873764ef7271af448dc42ab4
-      with: # All of theses inputs are optional
-        tag_name: "v%s"
-        tag_message: "v%s"
-        commit_pattern: "^Release (\\S+)"
-      env: # More info about the environment variables in the README
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Leave this as is, it's automatically generated
-        NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # You need to set this in your repo settings
+    - run: yarn build --frozen-lockfile
+    - run: yarn publish --non-interactive
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    - uses: actions/setup-node@v1
+      with:
+        registry-url: 'https://npm.pkg.github.com'
+    - name: yarn publish to github
+      run: yarn publish --non-interactive
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
