@@ -10,7 +10,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@master
     - name: Make sure package.json lists same version as this tag
-      run: test  "$(git describe | sed 's/^v//')" === "$(yarn version  --non-interactive | tail -n +2 | cut -d':' -f2 | head -1 | tr -d ' ')"
+      run: test  "$(git describe | sed 's/^v//')" == "$(yarn version  --non-interactive | tail -n +2 | cut -d':' -f2 | head -1 | tr -d ' ')"
     - name: Set up Node.js
       uses: actions/setup-node@master
       with:
