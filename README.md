@@ -6,15 +6,29 @@ Genome Nexus is a web service: https://www.genomenexus.org. A comprehensive one-
 
 ### For users
 
-If you have [npm](https://www.npmjs.com/get-npm) installed:
-```
-npx genome-nexus-cli --help
-```
-If you have [Docker](https://docs.docker.com/docker-for-windows/install/) installed:
-```
-docker run -it --rm node:8.12.0  npx genome-nexus-cli --help
-```
-If you use neither and prefer another way of installing please file a request in the issue tracker: https://github.com/genome-nexus/genome-nexus-cli/issues.
+Genome Nexus can be installed/run in several ways, choose which one works for you:
+
+- If you have [npm](https://www.npmjs.com/get-npm) installed. You can run it directly with:
+    ```
+    npx genome-nexus-cli --help
+    ```
+    or install globally with:
+    ```
+    npm install -g genome-nexus-cli
+    ```
+- If you have [Docker](https://docs.docker.com/docker-for-windows/install/) installed:
+    ```
+    docker run -it --rm node:8.12.0  npx genome-nexus-cli --help
+    ```
+- If you have [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/) installed:
+    ```
+    conda create -c conda-forge -n genome-nexus-env nodejs
+    conda activate genome-nexus-env
+    npm install -g genome-nexus-cli
+    genome-nexus --help
+    ```
+
+If you use none of these and prefer another way of installing please file a request in the issue tracker: https://github.com/genome-nexus/genome-nexus-cli/issues.
 
 ### For developers
 
