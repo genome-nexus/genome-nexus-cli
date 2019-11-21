@@ -15,6 +15,7 @@ Genome Nexus can be installed/run in several ways, choose which one works for yo
     or install globally with:
     ```
     npm install -g genome-nexus-cli
+    genome-nexus --help
     ```
 - If you have [Docker](https://docs.docker.com/docker-for-windows/install/) installed:
     ```
