@@ -62,6 +62,8 @@ Given input MAF file like: [test/data/minimal_example.in.txt](./test/data/minima
 genome-nexus annotate maf test/data/minimal_example.in.txt > test/data/minimal_example.out.txt
 ```
 
+Note that there is also a web interface to do this: https://www.cbioportal.org/mutation_mapper.
+
 ### Get JSON output for a single variant
 
 ```bash
