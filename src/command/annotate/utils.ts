@@ -39,7 +39,11 @@ export function initGenomeNexusClient(genomeNexusUrl?: string) {
     return new GenomeNexusAPI(genomeNexusUrl || DEFAULT_GENOME_NEXUS_URL);
 }
 
-export async function annotate(hgvs: string, client: GenomeNexusAPI, tokens: string) {
+export async function annotate(
+    hgvs: string,
+    client: GenomeNexusAPI,
+    tokens: string
+) {
     if (client.fetchVariantAnnotationGET) {
         return await client.fetchVariantAnnotationGET({
             variant: hgvs,
@@ -49,7 +53,7 @@ export async function annotate(hgvs: string, client: GenomeNexusAPI, tokens: str
                 'annotation_summary',
                 'mutation_assessor',
                 'my_variant_info',
-                'oncokb'
+                'oncokb',
             ],
         });
     } else {
@@ -72,7 +76,7 @@ export async function annotateGenomicLocationGET(
                 'annotation_summary',
                 'mutation_assessor',
                 'my_variant_info',
-                'oncokb'
+                'oncokb',
             ],
         });
     } else {
