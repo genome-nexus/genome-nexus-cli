@@ -39,15 +39,21 @@ export function initGenomeNexusClient(genomeNexusUrl?: string) {
     return new GenomeNexusAPI(genomeNexusUrl || DEFAULT_GENOME_NEXUS_URL);
 }
 
-export async function annotate(hgvs: string, client: GenomeNexusAPI) {
+export async function annotate(
+    hgvs: string,
+    client: GenomeNexusAPI,
+    tokens: string
+) {
     if (client.fetchVariantAnnotationGET) {
         return await client.fetchVariantAnnotationGET({
             variant: hgvs,
             isoformOverrideSource: 'mskcc',
+            token: tokens,
             fields: [
                 'annotation_summary',
                 'mutation_assessor',
                 'my_variant_info',
+                'oncokb',
             ],
         });
     } else {
@@ -57,17 +63,20 @@ export async function annotate(hgvs: string, client: GenomeNexusAPI) {
 
 export async function annotateGenomicLocationGET(
     genomicLocation: GenomicLocation,
-    client: GenomeNexusAPI
+    client: GenomeNexusAPI,
+    tokens: string
 ) {
     if (client.fetchVariantAnnotationByGenomicLocationGET) {
         const genomicLocationString = `${genomicLocation.chromosome},${genomicLocation.start},${genomicLocation.end},${genomicLocation.referenceAllele},${genomicLocation.variantAllele}`;
         return await client.fetchVariantAnnotationByGenomicLocationGET({
             genomicLocation: genomicLocationString,
             isoformOverrideSource: 'mskcc',
+            token: tokens,
             fields: [
                 'annotation_summary',
                 'mutation_assessor',
                 'my_variant_info',
+                'oncokb',
             ],
         });
     } else {
