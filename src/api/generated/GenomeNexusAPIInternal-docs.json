@@ -1,15 +1,12 @@
 {
   "swagger": "2.0",
   "info": {
-    "description": "Genome Nexus Variant Annotation API",
+    "description": "This page shows how to use HTTP requests to access the Genome Nexus API. There are more high level clients available in Python, R, JavaScript, TypeScript and various other languages as well as a command line client to annotate MAF and VCF. See https://docs.genomenexus.org/api.\n\nAside from programmatic clients there are web based tools to annotate variants, see https://docs.genomenexus.org/tools.\n\n We currently only provide long-term support for the '/annotation' endpoint. The other endpoints might change.",
     "version": "2.0",
     "title": "Genome Nexus API",
-    "contact": {
-      "name": "CMO, MSKCC"
-    },
     "license": {
-      "name": "GNU AFFERO GENERAL PUBLIC LICENSE Version 3",
-      "url": "https://github.com/cBioPortal/genome-nexus/blob/master/LICENSE"
+      "name": "MIT License",
+      "url": "https://github.com/genome-nexus/genome-nexus/blob/master/LICENSE"
     }
   },
   "tags": [
@@ -18,12 +15,12 @@
       "description": "Cross Reference Controller"
     },
     {
-      "name": "cancer-hotspots-controller",
-      "description": "Cancer Hotspots Controller"
+      "name": "signal-mutation-controller",
+      "description": "Signal Mutation Controller"
     },
     {
-      "name": "insight-mutation-controller",
-      "description": "Insight Mutation Controller"
+      "name": "cancer-hotspots-controller",
+      "description": "Cancer Hotspots Controller"
     },
     {
       "name": "mutation-assessor-controller",
@@ -422,76 +419,6 @@
         }
       }
     },
-    "/insight/mutation": {
-      "get": {
-        "tags": [
-          "insight-mutation-controller"
-        ],
-        "summary": "Retrieves MSK Insight mutations by Hugo Gene Symbol",
-        "operationId": "fetchInsightMutationsByHugoSymbolGET",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "hugoGeneSymbol",
-            "in": "query",
-            "description": "Hugo Symbol. For example BRCA1",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/InsightMutation"
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "insight-mutation-controller"
-        ],
-        "summary": "Retrieves MSK Insight mutations by Mutation Filter",
-        "operationId": "fetchInsightMutationsByMutationFilterPOST",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "in": "body",
-            "name": "mutationFilter",
-            "description": "List of Hugo Gene Symbols. For example [\"TP53\", \"PIK3CA\", \"BRCA1\"]",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/InsightMutationFilter"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/InsightMutation"
-              }
-            }
-          }
-        }
-      }
-    },
     "/isoform_override": {
       "post": {
         "tags": [
@@ -778,6 +705,76 @@
             "description": "OK",
             "schema": {
               "$ref": "#/definitions/MyVariantInfo"
+            }
+          }
+        }
+      }
+    },
+    "/signal/mutation": {
+      "get": {
+        "tags": [
+          "signal-mutation-controller"
+        ],
+        "summary": "Retrieves SignalDB mutations by Hugo Gene Symbol",
+        "operationId": "fetchSignalMutationsByHugoSymbolGETUsingGET",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "hugoGeneSymbol",
+            "in": "query",
+            "description": "Hugo Symbol. For example BRCA1",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/SignalMutation"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "signal-mutation-controller"
+        ],
+        "summary": "Retrieves SignalDB mutations by Mutation Filter",
+        "operationId": "fetchSignalMutationsByMutationFilterPOSTUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "mutationFilter",
+            "description": "List of Hugo Gene Symbols. For example [\"TP53\", \"PIK3CA\", \"BRCA1\"]",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SignalMutationFilter"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/SignalMutation"
+              }
             }
           }
         }
@@ -1114,15 +1111,18 @@
       "type": "object",
       "properties": {
         "tumorType": {
-          "type": "string"
+          "type": "string",
+          "description": "Tumor Type"
         },
         "tumorTypeCount": {
           "type": "integer",
-          "format": "int32"
+          "format": "int32",
+          "description": "Sample count for Tumor Type"
         },
         "variantCount": {
           "type": "integer",
-          "format": "int32"
+          "format": "int32",
+          "description": "Variant count for Tumor Type"
         }
       }
     },
@@ -1461,82 +1461,6 @@
         }
       }
     },
-    "InsightMutation": {
-      "type": "object",
-      "properties": {
-        "biallelicCountsByTumorType": {
-          "type": "array",
-          "description": "Biallelic Counts by Tumor Type",
-          "items": {
-            "$ref": "#/definitions/CountByTumorType"
-          }
-        },
-        "chromosome": {
-          "type": "string",
-          "description": "Chromosome"
-        },
-        "countsByTumorType": {
-          "type": "array",
-          "description": "Counts by Tumor Type",
-          "items": {
-            "$ref": "#/definitions/CountByTumorType"
-          }
-        },
-        "endPosition": {
-          "type": "integer",
-          "format": "int64",
-          "description": "End Position"
-        },
-        "hugoGeneSymbol": {
-          "type": "string",
-          "description": "Hugo Gene Symbol"
-        },
-        "mutationStatus": {
-          "type": "string",
-          "description": "Mutation Status"
-        },
-        "pathogenic": {
-          "type": "string",
-          "description": "Pathogenic"
-        },
-        "penetrance": {
-          "type": "string",
-          "description": "Penetrance"
-        },
-        "qcPassCountsByTumorType": {
-          "type": "array",
-          "description": "QC Pass Counts by Tumor Type",
-          "items": {
-            "$ref": "#/definitions/CountByTumorType"
-          }
-        },
-        "referenceAllele": {
-          "type": "string",
-          "description": "Reference Allele"
-        },
-        "startPosition": {
-          "type": "integer",
-          "format": "int64",
-          "description": "Start Position"
-        },
-        "variantAllele": {
-          "type": "string",
-          "description": "Variant Allele"
-        }
-      }
-    },
-    "InsightMutationFilter": {
-      "type": "object",
-      "properties": {
-        "hugoSymbols": {
-          "type": "array",
-          "description": "List of Hugo Symbols. For example [\"TP53\", \"PIK3CA\", \"BRCA1\"]",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
     "IntegerRange": {
       "type": "object",
       "properties": {
@@ -1816,6 +1740,82 @@
         "preferredName": {
           "type": "string",
           "description": "preferred_name"
+        }
+      }
+    },
+    "SignalMutation": {
+      "type": "object",
+      "properties": {
+        "biallelicCountsByTumorType": {
+          "type": "array",
+          "description": "Biallelic Counts by Tumor Type",
+          "items": {
+            "$ref": "#/definitions/CountByTumorType"
+          }
+        },
+        "chromosome": {
+          "type": "string",
+          "description": "Chromosome"
+        },
+        "countsByTumorType": {
+          "type": "array",
+          "description": "Counts by Tumor Type",
+          "items": {
+            "$ref": "#/definitions/CountByTumorType"
+          }
+        },
+        "endPosition": {
+          "type": "integer",
+          "format": "int64",
+          "description": "End Position"
+        },
+        "hugoGeneSymbol": {
+          "type": "string",
+          "description": "Hugo Gene Symbol"
+        },
+        "mutationStatus": {
+          "type": "string",
+          "description": "Mutation Status"
+        },
+        "pathogenic": {
+          "type": "string",
+          "description": "Pathogenic"
+        },
+        "penetrance": {
+          "type": "string",
+          "description": "Penetrance"
+        },
+        "qcPassCountsByTumorType": {
+          "type": "array",
+          "description": "QC Pass Counts by Tumor Type",
+          "items": {
+            "$ref": "#/definitions/CountByTumorType"
+          }
+        },
+        "referenceAllele": {
+          "type": "string",
+          "description": "Reference Allele"
+        },
+        "startPosition": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Start Position"
+        },
+        "variantAllele": {
+          "type": "string",
+          "description": "Variant Allele"
+        }
+      }
+    },
+    "SignalMutationFilter": {
+      "type": "object",
+      "properties": {
+        "hugoSymbols": {
+          "type": "array",
+          "description": "List of Hugo Symbols. For example [\"TP53\", \"PIK3CA\", \"BRCA1\"]",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },

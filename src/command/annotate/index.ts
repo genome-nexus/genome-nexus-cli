@@ -19,11 +19,16 @@ program
         'URL of genome nexus API to use',
         DEFAULT_GENOME_NEXUS_URL
     )
+    .option(
+        '--tokens <string>',
+        'Map of tokens. For example {"oncokb":"token"}'
+    )
     .action(async (input, args) => {
         try {
             const annotation = await annotate(
                 input,
-                initGenomeNexusClient(args.apiUrl)
+                initGenomeNexusClient(args.apiUrl),
+                args.tokens
             );
             console.log(JSON.stringify(annotation, null, 4));
         } catch (e) {
