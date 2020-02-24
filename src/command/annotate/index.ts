@@ -57,6 +57,10 @@ program
         'output failed records to this file'
     )
     .option('--exclude-failed', 'exclude failed records from stdout')
+    .option(
+        '--tokens <string>',
+        'Map of tokens. For example {"oncokb":"token"}'
+    )
     .action(async (input, args) => {
         try {
             const annotation = await annotateMAF(
@@ -64,6 +68,7 @@ program
                 args.chunkSize,
                 args.excludeFailed,
                 args.outputFileFailed,
+                args.tokens,
                 initGenomeNexusClient(args.apiUrl)
             );
         } catch (e) {

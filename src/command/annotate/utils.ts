@@ -86,13 +86,15 @@ export async function annotateGenomicLocationGET(
 
 export async function annotateGenomicLocationPOST(
     genomicLocations: GenomicLocation[],
-    client: GenomeNexusAPI
+    client: GenomeNexusAPI,
+    tokens: string
 ) {
     if (client.fetchVariantAnnotationByGenomicLocationPOST) {
         return await client.fetchVariantAnnotationByGenomicLocationPOST({
             genomicLocations: genomicLocations,
             isoformOverrideSource: 'mskcc',
-            fields: ['annotation_summary'],
+            token: tokens,
+            fields: ['annotation_summary', 'oncokb'],
         });
     } else {
         return undefined;
@@ -120,6 +122,7 @@ export async function annotateAndPrintChunk(
     chunkSize: number,
     excludeFailed: boolean,
     outputFileFailed: string,
+    tokens: string,
     client: GenomeNexusAPI
 ) {
     try {
@@ -128,12 +131,16 @@ export async function annotateAndPrintChunk(
             chunk
                 .filter(ca => isValidGenomicLocation(ca.genomicLocation))
                 .map(ca => ca.genomicLocation),
-            client
+            client,
+            tokens
         );
         let annotationsIndexed = indexAnnotationsByGenomicLocation(annotations);
 
         let i: number;
         for (i = 0; i < chunk.length; i++) {
+            let content = "";
+
+            // annotation_summary
             if (
                 isValidGenomicLocation(chunk[i].genomicLocation) &&
                 annotationsIndexed.hasOwnProperty(
@@ -153,16 +160,43 @@ export async function annotateAndPrintChunk(
                     annotationsIndexed[
                         genomicLocationToKey(chunk[i].genomicLocation)
                     ].annotation_summary.transcriptConsequenceSummary;
-                console.log(
-                    `${chunk[i].line.trim()}\t${summary.hugoGeneSymbol}\t${
-                        summary.hgvspShort
-                    }\t${summary.hgvsc}\t${summary.exon}\t${
-                        summary.variantClassification
-                    }`
-                );
+                content = content + `${chunk[i].line.trim()}\t${summary.hugoGeneSymbol}\t${
+                            summary.hgvspShort
+                        }\t${summary.hgvsc}\t${summary.exon}\t${
+                            summary.variantClassification
+                        }`;
             } else {
-                console.log(`${chunk[i].line.trim()}\t\t\t\t\t`);
+                content = content + `${chunk[i].line.trim()}\t\t\t\t\t`;
             }
+
+            // oncokb
+            if (isValidGenomicLocation(chunk[i].genomicLocation) &&
+            annotationsIndexed.hasOwnProperty(
+                genomicLocationToKey(chunk[i].genomicLocation)
+            ) &&
+            annotationsIndexed[
+                genomicLocationToKey(chunk[i].genomicLocation)
+            ] &&
+            annotationsIndexed[
+                genomicLocationToKey(chunk[i].genomicLocation)
+            ].oncokb && 
+            annotationsIndexed[
+                genomicLocationToKey(chunk[i].genomicLocation)
+            ].oncokb.annotation) {
+                let oncokb =
+                    annotationsIndexed[
+                        genomicLocationToKey(chunk[i].genomicLocation)
+                    ].oncokb.annotation;
+                content = content +
+                    `\t${oncokb.mutationEffect ? oncokb.mutationEffect.knownEffect : ""}\t${
+                        oncokb.oncogenic
+                    }\t${oncokb.highestSensitiveLevel}\t${oncokb.highestResistanceLevel}`;
+            } else {
+                content = content +`\t\t\t\t`;
+            }
+
+            // print
+            console.log(content);
         }
     } catch {
         if (!excludeFailed) {
@@ -188,6 +222,15 @@ export async function annotateAndPrintChunk(
     }
 }
 
+export function hasOncokb(tokens: string | undefined) {
+    if (tokens && tokens.includes("oncokb")) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 export type annotateLine = {
     line: string;
     genomicLocation: GenomicLocation;
@@ -198,6 +241,7 @@ export async function annotateMAF(
     chunkSize: number = 10,
     excludeFailed: boolean,
     outputFileFailed: string,
+    tokens: string,
     client: GenomeNexusAPI
 ) {
     let chunkedAnnotations: annotateLine[] = [];
@@ -222,7 +266,8 @@ export async function annotateMAF(
                 }
             }
             const header = `${line.trim()}\thugoGeneSymbol\thgvspShort\thgvsc\texon\tvariantClassification`;
-            console.log(header);
+            const oncokbHeader = `\tmutationEffect\toncogenic\thighestSensitiveLevel\thighestResistanceLevel`;
+            console.log(header + (hasOncokb(tokens) && oncokbHeader));
             if (outputFileFailed) {
                 fs.writeFileSync(
                     outputFileFailed,
@@ -246,6 +291,7 @@ export async function annotateMAF(
                     chunkSize,
                     excludeFailed,
                     outputFileFailed,
+                    tokens,
                     client
                 );
                 chunkedAnnotations = [];
@@ -260,6 +306,7 @@ export async function annotateMAF(
             chunkSize,
             excludeFailed,
             outputFileFailed,
+            tokens,
             client
         );
     }
