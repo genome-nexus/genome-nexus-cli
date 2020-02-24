@@ -80,6 +80,7 @@ Gives raw JSON output: [https://www.genomenexus.org/annotation/17:g.41242962_412
   - [ ] single variant anntotation
   - [ ] maf annotation
   - [ ] vcf conversion
+- [ ] There are still many more annotation sources to add: https://docs.genomenexus.org/annotation-sources
 
 ## Test Status 👷‍♀️
 
