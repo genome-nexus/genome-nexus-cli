@@ -202,75 +202,78 @@ export async function annotateAndPrintChunk(
 
                 // oncokb
                 // only add oncokb annotation columns if the oncokb token is provided
-                if (
-                    hasOncokbToken(tokens) &&
-                    annotationsIndexed[
-                        genomicLocationToKey(chunk[i].genomicLocation)
-                    ].oncokb &&
-                    annotationsIndexed[
-                        genomicLocationToKey(chunk[i].genomicLocation)
-                    ].oncokb.annotation
-                ) {
-                    let oncokb: IndicatorQueryResp =
+                if (hasOncokbToken(tokens)) {
+                    if (
                         annotationsIndexed[
                             genomicLocationToKey(chunk[i].genomicLocation)
-                        ].oncokb.annotation;
-                    // group drugs by level
-                    const groupedDrugsByLevel = groupDrugsByLevel(oncokb);
-                    let drugs = [];
-                    // for each level, print drug names if have treatments
-                    ONCOKB_LEVELS.forEach(level => {
-                        drugs.push(
-                            groupedDrugsByLevel[level]
-                                ? groupedDrugsByLevel[level]
-                                : ''
-                        );
-                    });
-                    const highestSensitiveLevel = oncokb.highestSensitiveLevel
-                        ? oncokb.highestSensitiveLevel
-                        : '';
-                    const highestResistanceLevel = oncokb.highestResistanceLevel
-                        ? oncokb.highestResistanceLevel
-                        : '';
-                    const mutationEffect = oncokb.mutationEffect
-                        ? oncokb.mutationEffect.knownEffect
-                        : '';
-                    let citations = [];
-                    // get citation from mutation effect
-                    if (
-                        oncokb.mutationEffect &&
-                        oncokb.mutationEffect.citations
+                        ].oncokb &&
+                        annotationsIndexed[
+                            genomicLocationToKey(chunk[i].genomicLocation)
+                        ].oncokb.annotation
                     ) {
-                        citations = appendOncokbCitations(
-                            citations,
-                            oncokb.mutationEffect.citations.pmids,
-                            oncokb.mutationEffect.citations.abstracts
-                        );
-                    }
-                    // get citation from treatments
-                    if (oncokb.treatments) {
-                        oncokb.treatments.forEach(treatment => {
-                            citations = appendOncokbCitations(
-                                citations,
-                                treatment.pmids,
-                                treatment.abstracts
+                        let oncokb: IndicatorQueryResp =
+                            annotationsIndexed[
+                                genomicLocationToKey(chunk[i].genomicLocation)
+                            ].oncokb.annotation;
+                        // group drugs by level
+                        const groupedDrugsByLevel = groupDrugsByLevel(oncokb);
+                        let drugs = [];
+                        // for each level, print drug names if have treatments
+                        ONCOKB_LEVELS.forEach(level => {
+                            drugs.push(
+                                groupedDrugsByLevel[level]
+                                    ? groupedDrugsByLevel[level]
+                                    : ''
                             );
                         });
+                        const highestSensitiveLevel = oncokb.highestSensitiveLevel
+                            ? oncokb.highestSensitiveLevel
+                            : '';
+                        const highestResistanceLevel = oncokb.highestResistanceLevel
+                            ? oncokb.highestResistanceLevel
+                            : '';
+                        const mutationEffect = oncokb.mutationEffect
+                            ? oncokb.mutationEffect.knownEffect
+                            : '';
+                        let citations = [];
+                        // get citation from mutation effect
+                        if (
+                            oncokb.mutationEffect &&
+                            oncokb.mutationEffect.citations
+                        ) {
+                            citations = appendOncokbCitations(
+                                citations,
+                                oncokb.mutationEffect.citations.pmids,
+                                oncokb.mutationEffect.citations.abstracts
+                            );
+                        }
+                        // get citation from treatments
+                        if (oncokb.treatments) {
+                            oncokb.treatments.forEach(treatment => {
+                                citations = appendOncokbCitations(
+                                    citations,
+                                    treatment.pmids,
+                                    treatment.abstracts
+                                );
+                            });
+                        }
+                        content =
+                            content +
+                            `\t${mutationEffect}\t${
+                                oncokb.oncogenic
+                            }\t${drugs.join(
+                                '\t'
+                            )}\t${highestSensitiveLevel}\t${highestResistanceLevel}\t${citations.join(
+                                ';'
+                            )}`;
+                    } else {
+                        content =
+                            content +
+                            (hasOncokbToken(tokens) &&
+                                printTab(
+                                    (ONCOKB_HEADER.match(/\t/g) || []).length
+                                ));
                     }
-                    content =
-                        content +
-                        `\t${mutationEffect}\t${oncokb.oncogenic}\t${drugs.join(
-                            '\t'
-                        )}\t${highestSensitiveLevel}\t${highestResistanceLevel}\t${citations.join(
-                            ';'
-                        )}`;
-                } else {
-                    content =
-                        content +
-                        (hasOncokbToken(tokens) &&
-                            printTab(
-                                (ONCOKB_HEADER.match(/\t/g) || []).length
-                            ));
                 }
             } else {
                 // if no genome nexus response available, print genomic location and tabs(length = ANNOTATION_SUMMARY_HEADER + optional fields)
