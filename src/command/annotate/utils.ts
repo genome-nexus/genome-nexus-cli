@@ -142,6 +142,8 @@ export async function annotateAndPrintChunk(
     tokens: string,
     client: GenomeNexusAPI
 ) {
+    // the number of columns added to the output file compare to input
+    const addedFieldsHeaderLength = (`${ANNOTATION_SUMMARY_HEADER}${hasOncokbToken(tokens) && ONCOKB_HEADER}`.match(/\t/g) || []).length;
     try {
         // TODO: only annotate unique genomic locations
         let annotations = await annotateGenomicLocationPOST(
@@ -171,12 +173,12 @@ export async function annotateAndPrintChunk(
                         }`;
                 }
                 else {
-                    content = countTab((`${chunk[i].line.trim()}${ANNOTATION_SUMMARY_HEADER}`.match(/\t/g) || []).length);
+                    content = content + `${chunk[i].line.trim()}${countTab((ANNOTATION_SUMMARY_HEADER.match(/\t/g) || []).length)}`;
                 }
 
                 // oncokb
                 // only add oncokb annotation columns if the oncokb token is provided
-                if (hasOncokb(tokens) && annotationsIndexed[genomicLocationToKey(chunk[i].genomicLocation)].oncokb && annotationsIndexed[genomicLocationToKey(chunk[i].genomicLocation)].oncokb.annotation) {
+                if (hasOncokbToken(tokens) && annotationsIndexed[genomicLocationToKey(chunk[i].genomicLocation)].oncokb && annotationsIndexed[genomicLocationToKey(chunk[i].genomicLocation)].oncokb.annotation) {
                     let oncokb: IndicatorQueryResp =
                     annotationsIndexed[
                         genomicLocationToKey(chunk[i].genomicLocation)
@@ -194,12 +196,12 @@ export async function annotateAndPrintChunk(
                         oncokb.oncogenic}\t${drugs}${oncokb.highestSensitiveLevel}\t${oncokb.highestResistanceLevel}`;
                 }
                 else {
-                    content = content + (hasOncokb(tokens) && countTab((ONCOKB_HEADER.match(/\t/g) || []).length));
+                    content = content + (hasOncokbToken(tokens) && countTab((ONCOKB_HEADER.match(/\t/g) || []).length));
                 }
             }
             else {
                 // if no genome nexus response available, print genomic location and tabs(length = ANNOTATION_SUMMARY_HEADER + optional fields)
-                content = `${chunk[i].line.trim()}${countTab((`${ANNOTATION_SUMMARY_HEADER}${hasOncokb(tokens) && ONCOKB_HEADER}`.match(/\t/g) || []).length)}`;
+                content = `${chunk[i].line.trim()}${countTab(addedFieldsHeaderLength)}`;
             }
 
             // print
@@ -208,14 +210,14 @@ export async function annotateAndPrintChunk(
     } catch {
         if (!excludeFailed) {
             console.log(
-                chunk.map(ca => `${ca.line.trim()}\t\t\t\t\t`).join(os.EOL)
+                chunk.map(ca => `${ca.line.trim()}${countTab(addedFieldsHeaderLength)}`).join(os.EOL)
             );
         }
         if (outputFileFailed) {
             fs.appendFile(
                 outputFileFailed,
                 chunk
-                    .map(ca => `${ca.line.trim()}\t\t\t\t\t${ERROR.API_ERROR}`)
+                    .map(ca => `${ca.line.trim()}${countTab(addedFieldsHeaderLength)}${ERROR.API_ERROR}`)
                     .join(os.EOL) + os.EOL,
                 function(err) {
                     if (err) {
@@ -240,7 +242,7 @@ export function countTab(length: number) {
     return tabs;
 }
 
-export function hasOncokb(tokens: string | undefined) {
+export function hasOncokbToken(tokens: string | undefined) {
     if (tokens && tokens.includes("oncokb")) {
         return true;
     }
@@ -292,7 +294,7 @@ export async function annotateMAF(
         line = line.toString('ascii');
 
         let columns = line.split('\t');
-
+        let header = '';
         if (rowCount === 0) {
             for (let columnName of COLUMN_NAMES_MAF) {
                 let index: number = columns.indexOf(columnName);
@@ -305,7 +307,13 @@ export async function annotateMAF(
             // print header
             // default headers: genomic location, annotation_summary fields
             // optional headers: OncoKB will be added if provide OncoKB token
-            const header = `${line.trim()}${ANNOTATION_SUMMARY_HEADER}${hasOncokb(tokens) && ONCOKB_HEADER}`
+            // TODO add customizable columns header
+            if (hasOncokbToken(tokens)) {
+                header = `${line.trim()}${ANNOTATION_SUMMARY_HEADER}${ONCOKB_HEADER}`;
+            }
+            else {
+                header = `${line.trim()}${ANNOTATION_SUMMARY_HEADER}`;
+            }
             console.log(header);
             if (outputFileFailed) {
                 fs.writeFileSync(
