@@ -8,10 +8,10 @@ import GenomeNexusAPI, {
     VariantAnnotation,
     IndicatorQueryResp,
     IndicatorQueryTreatment,
+    ArticleAbstract
 } from './../../api/generated/GenomeNexusAPI';
 
-//export const DEFAULT_GENOME_NEXUS_URL = 'https://www.genomenexus.org/';
-export const DEFAULT_GENOME_NEXUS_URL = 'http://localhost:38080/';
+export const DEFAULT_GENOME_NEXUS_URL = 'https://www.genomenexus.org/';
 
 export const COLUMN_NAMES_MAF = 'Chromosome\tStart_Position\tEnd_Position\tReference_Allele\tTumor_Seq_Allele2'.split(
     '\t'
@@ -31,7 +31,7 @@ export const ONCOKB_LEVELS = [
     'LEVEL_R3',
 ];
 export const ANNOTATION_SUMMARY_HEADER = `\thugoGeneSymbol\thgvspShort\thgvsc\texon\tvariantClassification`;
-export const ONCOKB_HEADER = `\tmutationEffect\toncogenic\t${ONCOKB_LEVELS.join('\t')}\thighestSensitiveLevel\thighestResistanceLevel`;
+export const ONCOKB_HEADER = `\tmutationEffect\toncogenic\t${ONCOKB_LEVELS.join('\t')}\thighestSensitiveLevel\thighestResistanceLevel\tcitations`;
 
 
 export function isValidGenomicLocation(
@@ -185,15 +185,28 @@ export async function annotateAndPrintChunk(
                     ].oncokb.annotation;
                     // group drugs by level
                     const groupedDrugsByLevel = groupDrugsByLevel(oncokb);
-                    let drugs = "";
-                    // for each level, show combined drug names
+                    let drugs = [];
+                    // for each level, print drug names if have treatments
                     ONCOKB_LEVELS.forEach(level => {
-                        drugs = drugs + (groupedDrugsByLevel[level] ? groupedDrugsByLevel[level] : "") + `\t`;
+                        drugs.push(groupedDrugsByLevel[level] ? groupedDrugsByLevel[level] : '')
                     });
-
+                    const highestSensitiveLevel = oncokb.highestSensitiveLevel ? oncokb.highestSensitiveLevel : '';
+                    const highestResistanceLevel = oncokb.highestResistanceLevel ? oncokb.highestResistanceLevel : '';
+                    const mutationEffect = oncokb.mutationEffect ? oncokb.mutationEffect.knownEffect : '';
+                    let citations = [];
+                    // get citation data from mutation effect
+                    if (oncokb.mutationEffect && oncokb.mutationEffect.citations) {
+                        citations = appendOncokbCitations(citations, oncokb.mutationEffect.citations.pmids, oncokb.mutationEffect.citations.abstracts);
+                    }
+                    // get citation from treatments
+                    if (oncokb.treatments) {
+                        oncokb.treatments.forEach(treatment => {
+                            citations = appendOncokbCitations(citations, treatment.pmids, treatment.abstracts);
+                        });
+                    }
                     content = content +
-                    `\t${oncokb.mutationEffect ? oncokb.mutationEffect.knownEffect : ""}\t${
-                        oncokb.oncogenic}\t${drugs}${oncokb.highestSensitiveLevel}\t${oncokb.highestResistanceLevel}`;
+                    `\t${mutationEffect}\t${
+                        oncokb.oncogenic}\t${drugs.join('\t')}\t${highestSensitiveLevel}\t${highestResistanceLevel}\t${citations.join(';')}`;
                 }
                 else {
                     content = content + (hasOncokbToken(tokens) && countTab((ONCOKB_HEADER.match(/\t/g) || []).length));
@@ -260,7 +273,7 @@ export function groupDrugsByLevel(oncokbAnnotation: IndicatorQueryResp) {
             treatment => treatment.level
         );
         // group drugs by level
-        // for each level, different treatments are separate by ',', drugs in one treatment is combined with '+'
+        // for each level, different treatments are separate by ',', drugs in one treatment are combined with '+'
         groupedDrugsByLevel = mapValues(groupedTreatmentsByLevel, (treatments: IndicatorQueryTreatment[]) => {
             return treatments.map((treatment: IndicatorQueryTreatment) => {
                 return treatment.drugs.map((drug) => drug.drugName).join('+');
@@ -268,6 +281,21 @@ export function groupDrugsByLevel(oncokbAnnotation: IndicatorQueryResp) {
         })
     }
     return groupedDrugsByLevel;
+}
+
+export function appendOncokbCitations(citations: string[], pmids: string[], abstracts: ArticleAbstract[]) {
+    pmids.forEach(pmid => {
+        if (citations.indexOf(pmid) === -1) {
+            citations.push(pmid);
+        }
+    });
+    abstracts.forEach(abstract => {
+        let abstractStr = abstract.abstract + '(' + abstract.link + ')';
+        if (citations.indexOf(abstractStr) === -1) {
+            citations.push(abstractStr);
+        }
+    });
+    return citations;
 }
 
 export type annotateLine = {
