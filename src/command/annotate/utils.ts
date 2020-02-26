@@ -8,11 +8,10 @@ import GenomeNexusAPI, {
     VariantAnnotation,
     IndicatorQueryResp,
     IndicatorQueryTreatment,
-    ArticleAbstract
+    ArticleAbstract,
 } from './../../api/generated/GenomeNexusAPI';
 
 export const DEFAULT_GENOME_NEXUS_URL = 'https://www.genomenexus.org/';
-
 export const COLUMN_NAMES_MAF = 'Chromosome\tStart_Position\tEnd_Position\tReference_Allele\tTumor_Seq_Allele2'.split(
     '\t'
 );
@@ -31,8 +30,9 @@ export const ONCOKB_LEVELS = [
     'LEVEL_R3',
 ];
 export const ANNOTATION_SUMMARY_HEADER = `\thugoGeneSymbol\thgvspShort\thgvsc\texon\tvariantClassification`;
-export const ONCOKB_HEADER = `\tmutationEffect\toncogenic\t${ONCOKB_LEVELS.join('\t')}\thighestSensitiveLevel\thighestResistanceLevel\tcitations`;
-
+export const ONCOKB_HEADER = `\tmutationEffect\toncogenic\t${ONCOKB_LEVELS.join(
+    '\t'
+)}\thighestSensitiveLevel\thighestResistanceLevel\tcitations`;
 
 export function isValidGenomicLocation(
     genomicLocation: GenomicLocation
@@ -142,8 +142,11 @@ export async function annotateAndPrintChunk(
     tokens: string,
     client: GenomeNexusAPI
 ) {
-    // the number of columns added to the output file compare to input
-    const addedFieldsHeaderLength = (`${ANNOTATION_SUMMARY_HEADER}${hasOncokbToken(tokens) && ONCOKB_HEADER}`.match(/\t/g) || []).length;
+    // number of columns added to the output file compare to input
+    const addedFieldsHeaderLength = (
+        `${ANNOTATION_SUMMARY_HEADER}${hasOncokbToken(tokens) &&
+            ONCOKB_HEADER}`.match(/\t/g) || []
+    ).length;
     try {
         // TODO: only annotate unique genomic locations
         let annotations = await annotateGenomicLocationPOST(
@@ -157,64 +160,123 @@ export async function annotateAndPrintChunk(
 
         let i: number;
         for (i = 0; i < chunk.length; i++) {
-            let content = "";
+            let content = '';
             // check if have genome nexus response
-            if (isValidGenomicLocation(chunk[i].genomicLocation) && annotationsIndexed.hasOwnProperty(genomicLocationToKey(chunk[i].genomicLocation)) && annotationsIndexed[genomicLocationToKey(chunk[i].genomicLocation)]) {
+            if (
+                isValidGenomicLocation(chunk[i].genomicLocation) &&
+                annotationsIndexed.hasOwnProperty(
+                    genomicLocationToKey(chunk[i].genomicLocation)
+                ) &&
+                annotationsIndexed[
+                    genomicLocationToKey(chunk[i].genomicLocation)
+                ]
+            ) {
                 // annotation_summary
-                if (annotationsIndexed[genomicLocationToKey(chunk[i].genomicLocation)].annotation_summary && annotationsIndexed[genomicLocationToKey(chunk[i].genomicLocation)].annotation_summary.transcriptConsequenceSummary) {
-                    let summary =
+                if (
                     annotationsIndexed[
                         genomicLocationToKey(chunk[i].genomicLocation)
-                    ].annotation_summary.transcriptConsequenceSummary;
-                    content = content + `${chunk[i].line.trim()}\t${summary.hugoGeneSymbol}\t${
+                    ].annotation_summary &&
+                    annotationsIndexed[
+                        genomicLocationToKey(chunk[i].genomicLocation)
+                    ].annotation_summary.transcriptConsequenceSummary
+                ) {
+                    let summary =
+                        annotationsIndexed[
+                            genomicLocationToKey(chunk[i].genomicLocation)
+                        ].annotation_summary.transcriptConsequenceSummary;
+                    content =
+                        content +
+                        `${chunk[i].line.trim()}\t${summary.hugoGeneSymbol}\t${
                             summary.hgvspShort
                         }\t${summary.hgvsc}\t${summary.exon}\t${
                             summary.variantClassification
                         }`;
-                }
-                else {
-                    content = content + `${chunk[i].line.trim()}${countTab((ANNOTATION_SUMMARY_HEADER.match(/\t/g) || []).length)}`;
+                } else {
+                    content =
+                        content +
+                        `${chunk[i].line.trim()}${printTab(
+                            (ANNOTATION_SUMMARY_HEADER.match(/\t/g) || [])
+                                .length
+                        )}`;
                 }
 
                 // oncokb
                 // only add oncokb annotation columns if the oncokb token is provided
-                if (hasOncokbToken(tokens) && annotationsIndexed[genomicLocationToKey(chunk[i].genomicLocation)].oncokb && annotationsIndexed[genomicLocationToKey(chunk[i].genomicLocation)].oncokb.annotation) {
-                    let oncokb: IndicatorQueryResp =
+                if (
+                    hasOncokbToken(tokens) &&
                     annotationsIndexed[
                         genomicLocationToKey(chunk[i].genomicLocation)
-                    ].oncokb.annotation;
+                    ].oncokb &&
+                    annotationsIndexed[
+                        genomicLocationToKey(chunk[i].genomicLocation)
+                    ].oncokb.annotation
+                ) {
+                    let oncokb: IndicatorQueryResp =
+                        annotationsIndexed[
+                            genomicLocationToKey(chunk[i].genomicLocation)
+                        ].oncokb.annotation;
                     // group drugs by level
                     const groupedDrugsByLevel = groupDrugsByLevel(oncokb);
                     let drugs = [];
                     // for each level, print drug names if have treatments
                     ONCOKB_LEVELS.forEach(level => {
-                        drugs.push(groupedDrugsByLevel[level] ? groupedDrugsByLevel[level] : '')
+                        drugs.push(
+                            groupedDrugsByLevel[level]
+                                ? groupedDrugsByLevel[level]
+                                : ''
+                        );
                     });
-                    const highestSensitiveLevel = oncokb.highestSensitiveLevel ? oncokb.highestSensitiveLevel : '';
-                    const highestResistanceLevel = oncokb.highestResistanceLevel ? oncokb.highestResistanceLevel : '';
-                    const mutationEffect = oncokb.mutationEffect ? oncokb.mutationEffect.knownEffect : '';
+                    const highestSensitiveLevel = oncokb.highestSensitiveLevel
+                        ? oncokb.highestSensitiveLevel
+                        : '';
+                    const highestResistanceLevel = oncokb.highestResistanceLevel
+                        ? oncokb.highestResistanceLevel
+                        : '';
+                    const mutationEffect = oncokb.mutationEffect
+                        ? oncokb.mutationEffect.knownEffect
+                        : '';
                     let citations = [];
-                    // get citation data from mutation effect
-                    if (oncokb.mutationEffect && oncokb.mutationEffect.citations) {
-                        citations = appendOncokbCitations(citations, oncokb.mutationEffect.citations.pmids, oncokb.mutationEffect.citations.abstracts);
+                    // get citation from mutation effect
+                    if (
+                        oncokb.mutationEffect &&
+                        oncokb.mutationEffect.citations
+                    ) {
+                        citations = appendOncokbCitations(
+                            citations,
+                            oncokb.mutationEffect.citations.pmids,
+                            oncokb.mutationEffect.citations.abstracts
+                        );
                     }
                     // get citation from treatments
                     if (oncokb.treatments) {
                         oncokb.treatments.forEach(treatment => {
-                            citations = appendOncokbCitations(citations, treatment.pmids, treatment.abstracts);
+                            citations = appendOncokbCitations(
+                                citations,
+                                treatment.pmids,
+                                treatment.abstracts
+                            );
                         });
                     }
-                    content = content +
-                    `\t${mutationEffect}\t${
-                        oncokb.oncogenic}\t${drugs.join('\t')}\t${highestSensitiveLevel}\t${highestResistanceLevel}\t${citations.join(';')}`;
+                    content =
+                        content +
+                        `\t${mutationEffect}\t${oncokb.oncogenic}\t${drugs.join(
+                            '\t'
+                        )}\t${highestSensitiveLevel}\t${highestResistanceLevel}\t${citations.join(
+                            ';'
+                        )}`;
+                } else {
+                    content =
+                        content +
+                        (hasOncokbToken(tokens) &&
+                            printTab(
+                                (ONCOKB_HEADER.match(/\t/g) || []).length
+                            ));
                 }
-                else {
-                    content = content + (hasOncokbToken(tokens) && countTab((ONCOKB_HEADER.match(/\t/g) || []).length));
-                }
-            }
-            else {
+            } else {
                 // if no genome nexus response available, print genomic location and tabs(length = ANNOTATION_SUMMARY_HEADER + optional fields)
-                content = `${chunk[i].line.trim()}${countTab(addedFieldsHeaderLength)}`;
+                content = `${chunk[i].line.trim()}${printTab(
+                    addedFieldsHeaderLength
+                )}`;
             }
 
             // print
@@ -223,14 +285,26 @@ export async function annotateAndPrintChunk(
     } catch {
         if (!excludeFailed) {
             console.log(
-                chunk.map(ca => `${ca.line.trim()}${countTab(addedFieldsHeaderLength)}`).join(os.EOL)
+                chunk
+                    .map(
+                        ca =>
+                            `${ca.line.trim()}${printTab(
+                                addedFieldsHeaderLength
+                            )}`
+                    )
+                    .join(os.EOL)
             );
         }
         if (outputFileFailed) {
             fs.appendFile(
                 outputFileFailed,
                 chunk
-                    .map(ca => `${ca.line.trim()}${countTab(addedFieldsHeaderLength)}${ERROR.API_ERROR}`)
+                    .map(
+                        ca =>
+                            `${ca.line.trim()}${printTab(
+                                addedFieldsHeaderLength
+                            )}${ERROR.API_ERROR}`
+                    )
                     .join(os.EOL) + os.EOL,
                 function(err) {
                     if (err) {
@@ -244,9 +318,9 @@ export async function annotateAndPrintChunk(
     }
 }
 
-export function countTab(length: number) {
+export function printTab(length: number) {
     // print tabs
-    let tabs = "";
+    let tabs = '';
     if (length > 0) {
         for (let i = 0; i < length; i++) {
             tabs += `\t`;
@@ -256,16 +330,15 @@ export function countTab(length: number) {
 }
 
 export function hasOncokbToken(tokens: string | undefined) {
-    if (tokens && tokens.includes("oncokb")) {
+    if (tokens && tokens.includes('oncokb')) {
         return true;
-    }
-    else {
+    } else {
         return false;
     }
 }
 
 export function groupDrugsByLevel(oncokbAnnotation: IndicatorQueryResp) {
-    let groupedDrugsByLevel: {[level: string]: string} = {};
+    let groupedDrugsByLevel: { [level: string]: string } = {};
     if (oncokbAnnotation.treatments.length > 0) {
         // group treatments by level
         let groupedTreatmentsByLevel = groupBy(
@@ -274,16 +347,27 @@ export function groupDrugsByLevel(oncokbAnnotation: IndicatorQueryResp) {
         );
         // group drugs by level
         // for each level, different treatments are separate by ',', drugs in one treatment are combined with '+'
-        groupedDrugsByLevel = mapValues(groupedTreatmentsByLevel, (treatments: IndicatorQueryTreatment[]) => {
-            return treatments.map((treatment: IndicatorQueryTreatment) => {
-                return treatment.drugs.map((drug) => drug.drugName).join('+');
-            }).join(',');
-        })
+        groupedDrugsByLevel = mapValues(
+            groupedTreatmentsByLevel,
+            (treatments: IndicatorQueryTreatment[]) => {
+                return treatments
+                    .map((treatment: IndicatorQueryTreatment) => {
+                        return treatment.drugs
+                            .map(drug => drug.drugName)
+                            .join('+');
+                    })
+                    .join(',');
+            }
+        );
     }
     return groupedDrugsByLevel;
 }
 
-export function appendOncokbCitations(citations: string[], pmids: string[], abstracts: ArticleAbstract[]) {
+export function appendOncokbCitations(
+    citations: string[],
+    pmids: string[],
+    abstracts: ArticleAbstract[]
+) {
     pmids.forEach(pmid => {
         if (citations.indexOf(pmid) === -1) {
             citations.push(pmid);
@@ -338,15 +422,16 @@ export async function annotateMAF(
             // TODO add customizable columns header
             if (hasOncokbToken(tokens)) {
                 header = `${line.trim()}${ANNOTATION_SUMMARY_HEADER}${ONCOKB_HEADER}`;
-            }
-            else {
+            } else {
                 header = `${line.trim()}${ANNOTATION_SUMMARY_HEADER}`;
             }
             console.log(header);
             if (outputFileFailed) {
                 fs.writeFileSync(
                     outputFileFailed,
-                    `${line.trim()}${ANNOTATION_SUMMARY_HEADER}\tGENOME_NEXUS_ERROR_CODE${os.EOL}`
+                    `${line.trim()}${ANNOTATION_SUMMARY_HEADER}\tGENOME_NEXUS_ERROR_CODE${
+                        os.EOL
+                    }`
                 );
             }
         } else {
