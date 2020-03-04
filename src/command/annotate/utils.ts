@@ -180,18 +180,22 @@ export async function annotateAndPrintChunk(
                         genomicLocationToKey(chunk[i].genomicLocation)
                     ].annotation_summary.transcriptConsequenceSummary
                 ) {
-                    let response = annotationsIndexed[
-                        genomicLocationToKey(chunk[i].genomicLocation)
-                    ];
+                    let response =
+                        annotationsIndexed[
+                            genomicLocationToKey(chunk[i].genomicLocation)
+                        ];
                     let summary =
-                        response.annotation_summary.transcriptConsequenceSummary;
+                        response.annotation_summary
+                            .transcriptConsequenceSummary;
                     content =
                         content +
-                        `${chunk[i].line.trim()}\thttps://www.genomenexus.org/variant/${response.hgvsg}\t${summary.hugoGeneSymbol}\t${
-                            summary.hgvspShort
-                        }\t${summary.hgvsc}\t${summary.exon}\t${
-                            summary.variantClassification
-                        }`;
+                        `${chunk[
+                            i
+                        ].line.trim()}\thttps://www.genomenexus.org/variant/${
+                            response.hgvsg
+                        }\t${summary.hugoGeneSymbol}\t${summary.hgvspShort}\t${
+                            summary.hgvsc
+                        }\t${summary.exon}\t${summary.variantClassification}`;
                 } else {
                     content =
                         content +

@@ -8,7 +8,7 @@ import { convertVCFtoMAF } from './convert';
 
 // this works because package.json gets copied to lib/
 // @ts-ignore
-import { version} from './package.json';
+import { version } from './package.json';
 
 program
     .version(version)
