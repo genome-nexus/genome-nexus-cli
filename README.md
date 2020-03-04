@@ -64,6 +64,15 @@ genome-nexus annotate maf test/data/minimal_example.in.txt > test/data/minimal_e
 
 Note that there is also a web interface to do this: https://www.cbioportal.org/mutation_mapper.
 
+
+#### Include OncoKB annotations
+To add [OncoKB](https://www.oncokb.org) annotations one should first [obtain a
+license](https://www.oncokb.org/dataAccess). Once you have a token one can add oncokb annotations like this:
+
+```bash
+genome-nexus annotate maf --tokens {"oncokb":"xxx-xxx-xxxx"} test/data/minimal_example.in.txt > test/data/minimal_example.out.txt
+```
+
 ### Get JSON output for a single variant
 
 ```bash
