@@ -29,7 +29,7 @@ export const ONCOKB_LEVELS = [
     'LEVEL_R2',
     'LEVEL_R3',
 ];
-export const ANNOTATION_SUMMARY_HEADER = `\thugoGeneSymbol\thgvspShort\thgvsc\texon\tvariantClassification`;
+export const ANNOTATION_SUMMARY_HEADER = `\tgenomeNexusUrl\thugoGeneSymbol\thgvspShort\thgvsc\texon\tvariantClassification`;
 export const ONCOKB_HEADER = `\tmutationEffect\toncogenic\t${ONCOKB_LEVELS.join(
     '\t'
 )}\thighestSensitiveLevel\thighestResistanceLevel\tcitations`;
@@ -180,13 +180,14 @@ export async function annotateAndPrintChunk(
                         genomicLocationToKey(chunk[i].genomicLocation)
                     ].annotation_summary.transcriptConsequenceSummary
                 ) {
+                    let response = annotationsIndexed[
+                        genomicLocationToKey(chunk[i].genomicLocation)
+                    ];
                     let summary =
-                        annotationsIndexed[
-                            genomicLocationToKey(chunk[i].genomicLocation)
-                        ].annotation_summary.transcriptConsequenceSummary;
+                        response.annotation_summary.transcriptConsequenceSummary;
                     content =
                         content +
-                        `${chunk[i].line.trim()}\t${summary.hugoGeneSymbol}\t${
+                        `${chunk[i].line.trim()}\thttps://www.genomenexus.org/variant/${response.hgvsg}\t${summary.hugoGeneSymbol}\t${
                             summary.hgvspShort
                         }\t${summary.hgvsc}\t${summary.exon}\t${
                             summary.variantClassification

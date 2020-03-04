@@ -1,3 +1,3 @@
-Chromosome	Start_Position	End_Position	Reference_Allele	Tumor_Seq_Allele2	hugoGeneSymbol	hgvspShort	hgvsc	exon	variantClassification
-3	178916927	178916939	TAGGCAACCGTGA	G	PIK3CA	p.V105_E109delinsG	ENST00000263967.3:c.314_326delinsG	2/21	In_Frame_Del
-7	55220240	55220240	G	T	EGFR	p.X210_splice	ENST00000275493.2:c.630G>T	6/28	Splice_Region
+Chromosome	Start_Position	End_Position	Reference_Allele	Tumor_Seq_Allele2	genomeNexusUrl	hugoGeneSymbol	hgvspShort	hgvsc	exon	variantClassification
+3	178916927	178916939	TAGGCAACCGTGA	G	https://www.genomenexus.org/variant/3:g.178916927_178916939delTAGGCAACCGTGAinsG	PIK3CA	p.V105_E109delinsG	ENST00000263967.3:c.314_326delinsG	2/21	In_Frame_Del
+7	55220240	55220240	G	T	https://www.genomenexus.org/variant/7:g.55220240G>T	EGFR	p.X210_splice	ENST00000275493.2:c.630G>T	6/28	Splice_Region
