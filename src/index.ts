@@ -6,10 +6,12 @@ import path from 'path';
 import program from 'commander';
 import { convertVCFtoMAF } from './convert';
 
-const VERSION = require('root-require')('package.json').version;
+// this works because package.json gets copied to lib/
+// @ts-ignore
+import { version} from './package.json';
 
 program
-    .version(VERSION)
+    .version(version)
     .description(
         chalk.cyan(
             figlet.textSync('Genome Nexus', { horizontalLayout: 'full' })
