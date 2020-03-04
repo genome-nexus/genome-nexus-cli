@@ -6,8 +6,10 @@ import path from 'path';
 import program from 'commander';
 import { convertVCFtoMAF } from './convert';
 
+const VERSION = require('root-require')('package.json').version;
+
 program
-    .version('0.0.1')
+    .version(VERSION)
     .description(
         chalk.cyan(
             figlet.textSync('Genome Nexus', { horizontalLayout: 'full' })
