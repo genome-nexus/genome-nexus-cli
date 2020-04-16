@@ -3,15 +3,16 @@ import { keyBy, groupBy, mapValues } from 'lodash';
 import fs from 'fs';
 import os from 'os';
 
-import GenomeNexusAPI, {
+import {
+    GenomeNexusAPI,
     GenomicLocation,
     VariantAnnotation,
     IndicatorQueryResp,
     IndicatorQueryTreatment,
     ArticleAbstract,
-} from './../../api/generated/GenomeNexusAPI';
+} from 'genome-nexus-ts-api-client';
 
-export const DEFAULT_GENOME_NEXUS_URL = 'https://www.genomenexus.org/';
+export const DEFAULT_GENOME_NEXUS_URL = 'https://v1.genomenexus.org/';
 export const COLUMN_NAMES_MAF = 'Chromosome\tStart_Position\tEnd_Position\tReference_Allele\tTumor_Seq_Allele2'.split(
     '\t'
 );
@@ -29,7 +30,8 @@ export const ONCOKB_LEVELS = [
     'LEVEL_R2',
     'LEVEL_R3',
 ];
-export const ANNOTATION_SUMMARY_HEADER = `\tgenomeNexusUrl\thugoGeneSymbol\thgvspShort\thgvsc\texon\tvariantClassification`;
+export const ANNOTATION_SUMMARY_HEADER = `\tgenomeNexusUrl\thugoGeneSymbol\thgvspShort\thgvsc\texon\tvariantClassification\taminoAcids\taminoAcidRef\taminoAcidAlt`;
+export const TRINUCLEOTIDE_CONTEXT_HEADER = `\tnucleotideContext`;
 export const ONCOKB_HEADER = `\tmutationEffect\toncogenic\t${ONCOKB_LEVELS.join(
     '\t'
 )}\thighestSensitiveLevel\thighestResistanceLevel\tcitations`;
@@ -70,6 +72,7 @@ export async function annotate(
                 'annotation_summary',
                 'mutation_assessor',
                 'my_variant_info',
+                'nucleotide_context',
                 'oncokb',
             ],
         });
@@ -93,6 +96,7 @@ export async function annotateGenomicLocationGET(
                 'annotation_summary',
                 'mutation_assessor',
                 'my_variant_info',
+                'nucleotide_context',
                 'oncokb',
             ],
         });
@@ -111,7 +115,7 @@ export async function annotateGenomicLocationPOST(
             genomicLocations: genomicLocations,
             isoformOverrideSource: 'mskcc',
             token: tokens,
-            fields: ['annotation_summary', 'oncokb'],
+            fields: ['annotation_summary', 'oncokb', 'nucleotide_context'],
         });
     } else {
         return undefined;
@@ -144,7 +148,7 @@ export async function annotateAndPrintChunk(
 ) {
     // number of columns added to the output file compare to input
     const addedFieldsHeaderLength = (
-        `${ANNOTATION_SUMMARY_HEADER}${hasOncokbToken(tokens) &&
+        `${ANNOTATION_SUMMARY_HEADER}${TRINUCLEOTIDE_CONTEXT_HEADER}${hasOncokbToken(tokens) &&
             ONCOKB_HEADER}`.match(/\t/g) || []
     ).length;
     try {
@@ -171,19 +175,15 @@ export async function annotateAndPrintChunk(
                     genomicLocationToKey(chunk[i].genomicLocation)
                 ]
             ) {
+                let response =
+                    annotationsIndexed[
+                        genomicLocationToKey(chunk[i].genomicLocation)
+                    ];
+
                 // annotation_summary
                 if (
-                    annotationsIndexed[
-                        genomicLocationToKey(chunk[i].genomicLocation)
-                    ].annotation_summary &&
-                    annotationsIndexed[
-                        genomicLocationToKey(chunk[i].genomicLocation)
-                    ].annotation_summary.transcriptConsequenceSummary
+                    response.annotation_summary.transcriptConsequenceSummary
                 ) {
-                    let response =
-                        annotationsIndexed[
-                            genomicLocationToKey(chunk[i].genomicLocation)
-                        ];
                     let summary =
                         response.annotation_summary
                             .transcriptConsequenceSummary;
@@ -195,31 +195,30 @@ export async function annotateAndPrintChunk(
                             response.hgvsg
                         }\t${summary.hugoGeneSymbol}\t${summary.hgvspShort}\t${
                             summary.hgvsc
-                        }\t${summary.exon}\t${summary.variantClassification}`;
+                        }\t${summary.exon}\t${summary.variantClassification}\t${summary.aminoAcids}\t${summary.aminoAcidRef}\t${summary.aminoAcidAlt}`;
                 } else {
                     content =
                         content +
                         `${chunk[i].line.trim()}${printTab(
-                            (ANNOTATION_SUMMARY_HEADER.match(/\t/g) || [])
+                            (`${ANNOTATION_SUMMARY_HEADER}`.match(/\t/g) || [])
                                 .length
                         )}`;
+                }
+
+                if (response.nucleotide_context &&
+                    response.nucleotide_context.annotation &&
+                    response.nucleotide_context.annotation.seq) {
+                    content = `${content}\t${response.nucleotide_context.annotation.seq}`;
                 }
 
                 // oncokb
                 // only add oncokb annotation columns if the oncokb token is provided
                 if (hasOncokbToken(tokens)) {
                     if (
-                        annotationsIndexed[
-                            genomicLocationToKey(chunk[i].genomicLocation)
-                        ].oncokb &&
-                        annotationsIndexed[
-                            genomicLocationToKey(chunk[i].genomicLocation)
-                        ].oncokb.annotation
+                        response.oncokb.annotation
                     ) {
                         let oncokb: IndicatorQueryResp =
-                            annotationsIndexed[
-                                genomicLocationToKey(chunk[i].genomicLocation)
-                            ].oncokb.annotation;
+                            response.oncokb.annotation;
                         // group drugs by level
                         const groupedDrugsByLevel = groupDrugsByLevel(oncokb);
                         let drugs = [];
@@ -429,9 +428,9 @@ export async function annotateMAF(
             // optional headers: OncoKB will be added if provide OncoKB token
             // TODO add customizable columns header
             if (hasOncokbToken(tokens)) {
-                header = `${line.trim()}${ANNOTATION_SUMMARY_HEADER}${ONCOKB_HEADER}`;
+                header = `${line.trim()}${ANNOTATION_SUMMARY_HEADER}${TRINUCLEOTIDE_CONTEXT_HEADER}${ONCOKB_HEADER}`;
             } else {
-                header = `${line.trim()}${ANNOTATION_SUMMARY_HEADER}`;
+                header = `${line.trim()}${ANNOTATION_SUMMARY_HEADER}${TRINUCLEOTIDE_CONTEXT_HEADER}`;
             }
             console.log(header);
             if (outputFileFailed) {

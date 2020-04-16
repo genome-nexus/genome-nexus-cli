@@ -26,7 +26,7 @@ program
     .action(async (input, args) => {
         try {
             const annotation = await annotate(
-                input,
+                args[0],
                 initGenomeNexusClient(args.apiUrl),
                 args.tokens
             );
@@ -50,6 +50,7 @@ program
     .option(
         '-c, --chunk-size <number>',
         'how many variants to send in single POST request',
+        parseInt,
         100
     )
     .option(
@@ -64,7 +65,7 @@ program
     .action(async (input, args) => {
         try {
             const annotation = await annotateMAF(
-                input,
+                args[0],
                 args.chunkSize,
                 args.excludeFailed,
                 args.outputFileFailed,
