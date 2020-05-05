@@ -16,17 +16,36 @@ export type MAFRecord = {
 };
 
 export function convertVCFtoMAF(inputFile: string) {
+    // default VCF index of columns
+    let column_nr = {
+        CHROM: 0,
+        POS: 1,
+        REF: 3,
+        ALT: 4,
+    };
+
     console.log(
         'Chromosome\tStart_Position\tEnd_Position\tReference_Allele\tTumor_Seq_Allele2'
     );
     lineReader.eachLine(inputFile, function(line) {
-        if (!line.startsWith('#')) {
+        if (line.startsWith('#CHROM')) {
+            // handle non default order of columns
+            const fields = line.substring(1).split('\t');
+
+            let i = 0;
+            for (let field of fields) {
+                if (Object.keys(column_nr).includes(field)) {
+                    column_nr[field] = i;
+                }
+                i++;
+            }
+        } else if (!line.startsWith('#')) {
             const fields = line.split('\t');
             const MafRecord = convertVCFRecordToMAFRecord({
-                CHROM: fields[0],
-                POS: parseInt(fields[1]),
-                REF: fields[3],
-                ALT: fields[4],
+                CHROM: fields[column_nr['CHROM']],
+                POS: parseInt(fields[column_nr['POS']]),
+                REF: fields[column_nr['REF']],
+                ALT: fields[column_nr['ALT']],
             });
             console.log(
                 `${MafRecord.Chromosome}\t${MafRecord.Start_Position}\t${MafRecord.End_Position}\t${MafRecord.Reference_Allele}\t${MafRecord.Tumor_Seq_Allele2}`
@@ -40,15 +59,35 @@ export function convertVCFRecordToMAFRecord(input: VCFRecord): MAFRecord {
         return {
             Chromosome: input.CHROM,
             Start_Position: input.POS,
-            End_Position: input.POS,
+            End_Position: input.POS + (input.REF.length - 1),
             Reference_Allele: input.REF,
             Tumor_Seq_Allele2: input.ALT,
         };
     } else if (input.REF.length > input.ALT.length) {
         if (input.ALT.length !== 1) {
-            throw new Error(
-                `VCF Record parsing error: unexpected ALT length\n${input}`
-            );
+            // find longest common prefix and remove
+            let longestCommonPrefix = '';
+            let i = 0;
+            for (let c of input.ALT) {
+                if (c === input.REF[i]) {
+                    longestCommonPrefix += c;
+                    i++;
+                } else {
+                    break;
+                }
+            }
+
+            const mafRef = input.REF.substring(longestCommonPrefix.length);
+            const mafAlt = input.ALT.substring(longestCommonPrefix.length);
+            const mafStartPos = input.POS + longestCommonPrefix.length;
+            const mafEndPos = mafStartPos + mafRef.length - 1;
+            return {
+                Chromosome: input.CHROM,
+                Start_Position: mafStartPos,
+                End_Position: mafEndPos,
+                Reference_Allele: mafRef,
+                Tumor_Seq_Allele2: mafAlt,
+            };
         } else if (input.REF[0] !== input.ALT) {
             throw new Error(
                 `VCF Record parsing error: unexpected REF/ALT combo\n${input}`
