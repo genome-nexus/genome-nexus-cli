@@ -14,9 +14,9 @@ jobs:
     steps:
 
       - run:
-        name: "Install yarn at specific version"
-        command:
-          sudo npm install --global yarn@1.21.1
+          name: "Install yarn at specific version"
+          command:
+            sudo npm install --global yarn@1.21.1
 
       - checkout
 
