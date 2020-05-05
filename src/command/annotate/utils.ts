@@ -148,8 +148,9 @@ export async function annotateAndPrintChunk(
 ) {
     // number of columns added to the output file compare to input
     const addedFieldsHeaderLength = (
-        `${ANNOTATION_SUMMARY_HEADER}${TRINUCLEOTIDE_CONTEXT_HEADER}${hasOncokbToken(tokens) &&
-            ONCOKB_HEADER}`.match(/\t/g) || []
+        `${ANNOTATION_SUMMARY_HEADER}${TRINUCLEOTIDE_CONTEXT_HEADER}${hasOncokbToken(
+            tokens
+        ) && ONCOKB_HEADER}`.match(/\t/g) || []
     ).length;
     try {
         // TODO: only annotate unique genomic locations
@@ -181,9 +182,7 @@ export async function annotateAndPrintChunk(
                     ];
 
                 // annotation_summary
-                if (
-                    response.annotation_summary.transcriptConsequenceSummary
-                ) {
+                if (response.annotation_summary.transcriptConsequenceSummary) {
                     let summary =
                         response.annotation_summary
                             .transcriptConsequenceSummary;
@@ -195,7 +194,9 @@ export async function annotateAndPrintChunk(
                             response.hgvsg
                         }\t${summary.hugoGeneSymbol}\t${summary.hgvspShort}\t${
                             summary.hgvsc
-                        }\t${summary.exon}\t${summary.variantClassification}\t${summary.aminoAcids}\t${summary.aminoAcidRef}\t${summary.aminoAcidAlt}`;
+                        }\t${summary.exon}\t${summary.variantClassification}\t${
+                            summary.aminoAcids
+                        }\t${summary.aminoAcidRef}\t${summary.aminoAcidAlt}`;
                 } else {
                     content =
                         content +
@@ -205,18 +206,18 @@ export async function annotateAndPrintChunk(
                         )}`;
                 }
 
-                if (response.nucleotide_context &&
+                if (
+                    response.nucleotide_context &&
                     response.nucleotide_context.annotation &&
-                    response.nucleotide_context.annotation.seq) {
+                    response.nucleotide_context.annotation.seq
+                ) {
                     content = `${content}\t${response.nucleotide_context.annotation.seq}`;
                 }
 
                 // oncokb
                 // only add oncokb annotation columns if the oncokb token is provided
                 if (hasOncokbToken(tokens)) {
-                    if (
-                        response.oncokb.annotation
-                    ) {
+                    if (response.oncokb.annotation) {
                         let oncokb: IndicatorQueryResp =
                             response.oncokb.annotation;
                         // group drugs by level
