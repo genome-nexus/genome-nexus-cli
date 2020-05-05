@@ -25,8 +25,8 @@ program
 program
     .command('convert')
     .description('convert between different mutation formats (e.g. VCF to MAF)')
-    .action((inputFile, args) => {
-        convertVCFtoMAF(inputFile);
+    .action((input, args) => {
+        convertVCFtoMAF(args[0]);
     });
 
 program.command('annotate', 'retrieve annotations');
