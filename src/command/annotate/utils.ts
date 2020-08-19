@@ -127,14 +127,30 @@ export function genomicLocationToKey(gl: GenomicLocation): string {
 }
 
 export function indexAnnotationsByGenomicLocation(
-    annotations: VariantAnnotation[]
+    variantAnnotations: VariantAnnotation[]
+): { [genomicLocation: string]: VariantAnnotation } {
+    return keyBy(variantAnnotations, annotation =>
+        annotation.originalVariantQuery
+            ? annotation.originalVariantQuery
+            : genomicLocationStringFromVariantAnnotation(annotation)
+    );
+}
+
+export function genomicLocationStringFromVariantAnnotation(
+    annotation: VariantAnnotation
 ) {
-    return keyBy(annotations, function(annotation: VariantAnnotation) {
-        if (annotation && annotation.annotation_summary) {
-            return genomicLocationToKey(
-                annotation.annotation_summary.genomicLocation
-            );
-        }
+    const chromosome = annotation.seq_region_name;
+    const start = annotation.start;
+    const end = annotation.end;
+    const referenceAllele = annotation.allele_string.split('/')[0];
+    const variantAllele = annotation.allele_string.split('/')[1];
+
+    return genomicLocationToKey({
+        chromosome,
+        start,
+        end,
+        referenceAllele,
+        variantAllele,
     });
 }
 

@@ -15,7 +15,7 @@
     "clear": "^0.1.0",
     "commander": "^5.0.0",
     "figlet": "^1.2.4",
-    "genome-nexus-ts-api-client": "^1.1.2-beta.0",
+    "genome-nexus-ts-api-client": "^1.1.5",
     "inquirer": "^7.0.0",
     "line-reader": "^0.4.0",
     "lodash": "^4.17.15",
