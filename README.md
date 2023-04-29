@@ -1,4 +1,4 @@
-**WARNING ⚠️: The [java based MAF annotator](https://github.com/genome-nexus/genome-nexus-annotation-pipeline) and associated [vcf2maf python conversion scripts](https://github.com/genome-nexus/annotation-tools/blob/master/vcf2maf.py) are more up to date, use this at your own risk. This was an attempt to restructure the cli interface but is not actively maintained.**
+**WARNING ⚠️: The [java based MAF annotator](https://github.com/genome-nexus/genome-nexus-annotation-pipeline) and associated [vcf2maf python conversion scripts](https://github.com/genome-nexus/annotation-tools/blob/master/vcf2maf.py) are more up to date, use this at your own risk. This was an attempt to restructure the cli interface but it is not actively maintained.**
 
 # Command Line Interface for Genome Nexus
 
